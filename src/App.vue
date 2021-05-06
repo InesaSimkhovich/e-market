@@ -1,17 +1,49 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <VSpinner/>
+
+    <section>
+      <VGoodsList
+        :deletedItemId="deletedItemId"
+        @addItemToCart="addItemToCart"/>
+      <div class="sticky">
+        <VCurrencyRate/>
+        <VCart
+          :listItems="listItems"
+          @deleteFromCart="setDeletedItemId"/>
+      </div>
+    </section>
+
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue';
+import VSpinner from '@/components/VSpinner.vue';
+import VGoodsList from '@/components/VGoodsList.vue';
+import VCart from '@/components/VCart.vue';
+import VCurrencyRate from '@/components/VCurrencyRate.vue';
 
 export default {
   name: 'app',
   components: {
-    HelloWorld,
+    VSpinner,
+    VGoodsList,
+    VCart,
+    VCurrencyRate,
+  },
+  data() {
+    return {
+      listItems: [],
+      deletedItemId: null,
+    };
+  },
+  methods: {
+    addItemToCart(item) {
+      this.listItems.push(item);
+    },
+    setDeletedItemId(item) {
+      this.deletedItemId = item.T;
+    },
   },
 };
 </script>
@@ -22,7 +54,5 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
