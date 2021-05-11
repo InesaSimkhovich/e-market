@@ -12,15 +12,19 @@
 </template>
 
 <script>
-const TIME_TO_REFRESH_RATE = 15000;
-
 export default {
   name: 'VCurrencyRate',
   data() {
     return {
       oldRate: 0,
-      timerId: null,
     };
+  },
+  watch: {
+    currentRate(value, oldValue) {
+      if (oldValue) {
+        this.oldRate = oldValue;
+      }
+    },
   },
   computed: {
     currentRate() {
@@ -32,17 +36,6 @@ export default {
     arrow() {
       return this.currentRate > this.oldRate ? '↑' : '↓';
     },
-  },
-  created() {
-    this.$store.dispatch('getRate');
-
-    this.timerId = setInterval(() => {
-      this.oldRate = this.$store.state.currentRate;
-      this.$store.dispatch('getRate');
-    }, TIME_TO_REFRESH_RATE);
-  },
-  destroyed() {
-    clearInterval(this.timerId);
   },
 };
 </script>

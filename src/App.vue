@@ -1,16 +1,15 @@
 <template>
   <div id="app">
     <VSpinner/>
+    <notifications
+      position="bottom right"
+      animation-name="fade-notification" />
 
     <section>
-      <VGoodsList
-        :deletedItemId="deletedItemId"
-        @addItemToCart="addItemToCart"/>
+      <VGoodsList />
       <div class="sticky">
-        <VCurrencyRate/>
-        <VCart
-          :listItems="listItems"
-          @deleteFromCart="setDeletedItemId"/>
+        <VCurrencyRate />
+        <VCart />
       </div>
     </section>
 
@@ -23,6 +22,8 @@ import VGoodsList from '@/components/VGoodsList.vue';
 import VCart from '@/components/VCart.vue';
 import VCurrencyRate from '@/components/VCurrencyRate.vue';
 
+const TIME_TO_REFRESH_DATA = 15000;
+
 export default {
   name: 'app',
   components: {
@@ -33,17 +34,16 @@ export default {
   },
   data() {
     return {
-      listItems: [],
-      deletedItemId: null,
+      timerId: null,
     };
   },
-  methods: {
-    addItemToCart(item) {
-      this.listItems.push(item);
-    },
-    setDeletedItemId(item) {
-      this.deletedItemId = item.T;
-    },
+  created() {
+    this.timerId = setInterval(() => {
+      this.$store.dispatch('getGoods');
+    }, TIME_TO_REFRESH_DATA);
+  },
+  destroyed() {
+    clearInterval(this.timerId);
   },
 };
 </script>

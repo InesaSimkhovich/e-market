@@ -2,13 +2,13 @@
   <div>
     <button
       class="btn-cart"
-      @click="isCartVisible = !isCartVisible">
+      @click="isCartShow = !isCartShow">
       {{ btnName }}
     </button>
 
     <transition name="slide-fade">
-      <div v-if="isCartVisible">
-        <template v-if="listItems.length === 0">
+      <div v-if="isCartShow">
+        <template v-if="cartList.length === 0">
           Корзина пустая
         </template>
 
@@ -20,14 +20,16 @@
 
             <template slot="containerItems">
               <VCartItem
-                v-for="item in listItems"
-                :key="item.T"
+                v-for="(item, index) in cartList"
+                :key="item.id"
                 :item="item"
-                @deleteFromCart="deleteFromCart"
-                @markChangedItem="markChangedItems"/>
+                @deleteFromCart="deleteFromCart(index)"
+                @changeQuantity="calculateAmount"/>
             </template>
           </VContainer>
-          <div>Общая стоимость: <span class="total-amount">{{ totalAmountRuble }} ₽</span></div>
+          <div>Общая стоимость:
+            <span class="total-amount">{{ totalAmountRuble | toFixed }} ₽</span>
+          </div>
         </template>
       </div>
     </transition>
@@ -35,7 +37,6 @@
 </template>
 
 <script>
-import Formatter from '@/utils/formatter';
 import VContainer from './VContainer.vue';
 import VCartItem from './VCartItem.vue';
 
@@ -45,21 +46,19 @@ export default {
     VContainer,
     VCartItem,
   },
-  props: {
-    listItems: {
-      type: Array,
-    },
-  },
   computed: {
+    cartList() {
+      return this.$store.state.cartList;
+    },
     currentRate() {
       return this.$store.state.currentRate;
     },
     btnName() {
-      return this.isCartVisible ? 'Скрыть корзину' : 'Раскрыть корзину';
+      return this.isCartShow ? 'Скрыть корзину' : 'Раскрыть корзину';
     },
   },
   watch: {
-    listItems: {
+    cartList: {
       handler: 'calculateAmount',
     },
     currentRate(value) {
@@ -70,46 +69,25 @@ export default {
   },
   data() {
     return {
-      isCartVisible: false,
+      isCartShow: false,
       totalAmountRuble: 0,
-      changedItemsByQuantity: [],
     };
   },
+  created() {
+    this.calculateAmount();
+  },
   methods: {
-    markChangedItems(changedItem) {
-      const index = this.changedItemsByQuantity.findIndex(item => item.id === changedItem.id);
-      if (index === -1) {
-        this.changedItemsByQuantity.push(changedItem);
-      } else {
-        this.changedItemsByQuantity[index] = changedItem;
-      }
-
-      this.calculateAmount();
-    },
     calculateAmount() {
       const initialValue = 0;
-      let totalAmountDollar = this.listItems.reduce(
-        (accumulator, currentValue) => accumulator + currentValue.C,
+      const totalAmountDollar = this.cartList.reduce(
+        (accumulator, currentValue) => accumulator
+          + currentValue.priceInDollars * (currentValue.quantityToOrder || 1),
         initialValue,
       );
-
-      if (this.changedItemsByQuantity && this.changedItemsByQuantity.length > 0) {
-        this.listItems.forEach((item) => {
-          this.changedItemsByQuantity.forEach((changedItem) => {
-            if (item.T === changedItem.id) {
-              totalAmountDollar += item.C * (changedItem.quantity - 1);
-            }
-          });
-        });
-      }
-
-      this.totalAmountRuble = Formatter.convertDollarToRuble(totalAmountDollar,
-        this.$store.state.currentRate);
+      this.totalAmountRuble = totalAmountDollar * this.$store.state.currentRate;
     },
-    deleteFromCart(item) {
-      this.$emit('deleteFromCart', item);
-      const index = this.listItems.findIndex(listItem => listItem.T === item.T);
-      this.listItems.splice(index, 1);
+    deleteFromCart(index) {
+      this.$store.dispatch('deleteFromCart', index);
     },
   },
 };

@@ -13,15 +13,10 @@
 <script>
 export default {
   name: 'VSpinner',
-  data() {
-    return {
-      isSpinnerShow: false,
-    };
-  },
-  created() {
-    this.$root.$on('spinner:show', (value) => {
-      this.isSpinnerShow = value;
-    });
+  computed: {
+    isSpinnerShow() {
+      return this.$store.state.isShowSpinner;
+    },
   },
 };
 </script>

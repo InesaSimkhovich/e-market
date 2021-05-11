@@ -12,6 +12,15 @@ input[type='range'] {
     width: 90%;
 }
 
+.is-invalid {
+    border: 1px solid red;
+}
+
+.error-message {
+    color: red;
+    font-size: 12px;
+}
+
 section {
     display: flex;
     justify-content: space-between;
